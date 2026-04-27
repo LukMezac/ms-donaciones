@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "donaciones")
 public class Donacion {
-
+    // endpoint donaciones funcionando
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -14,10 +14,8 @@ public class Donacion {
     private int cantidad;
     private String descripcion;
 
-    // Constructor vacío
     public Donacion() {}
 
-    // Constructor
     public Donacion(String tipo, int cantidad, String descripcion) {
         this.tipo = tipo;
         this.cantidad = cantidad;
