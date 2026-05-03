@@ -1,8 +1,11 @@
 package com.donaton.donaciones.factory;
 
-public class InsumoMedico implements DonacionTipo {
+import com.donaton.donaciones.model.Donacion;
+
+public class InsumoMedico extends Donacion implements DonacionTipo {
+
     @Override
     public String getTipo() {
-        return "Insumo Médico";
+        return "InsumoMedico";
     }
 }

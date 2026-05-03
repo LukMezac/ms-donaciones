@@ -2,10 +2,10 @@ package com.donaton.donaciones.factory;
 
 import com.donaton.donaciones.model.Donacion;
 
-public class Alimento extends Donacion implements DonacionTipo {
+public class Higiene extends Donacion implements DonacionTipo {
 
     @Override
     public String getTipo() {
-        return "Alimento";
+        return "Higiene";
     }
 }

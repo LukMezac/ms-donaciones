@@ -23,7 +23,7 @@ public class DonacionService {
 
     public Donacion guardar(Donacion d) {
 
-        DonacionTipo tipo = DonacionFactory.crear(d.getCategoria());
+        DonacionTipo tipo = (DonacionTipo) DonacionFactory.crear(d.getCategoria());
 
 
         System.out.println("Factory creó tipo: " + tipo.getTipo());

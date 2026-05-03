@@ -1,19 +1,24 @@
 package com.donaton.donaciones.factory;
 
-import com.donaton.donaciones.factory.Alimento;
-import com.donaton.donaciones.factory.DonacionTipo;
-import com.donaton.donaciones.factory.InsumoMedico;
-import com.donaton.donaciones.factory.Ropa;
+import com.donaton.donaciones.model.Donacion;
+
+import java.text.Normalizer;
 
 public class DonacionFactory {
 
-    public static DonacionTipo crear(String categoria) {
+    public static Donacion crear(String categoria) {
 
         if (categoria == null) {
             throw new IllegalArgumentException("Categoría no puede ser null");
         }
 
-        switch (categoria.toLowerCase()) {
+        //NORMALIZAR TEXTO (quita tildes y espacios raros)
+        String cat = Normalizer.normalize(categoria, Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+                .toLowerCase()
+                .trim();
+
+        switch (cat) {
 
             case "alimentos":
             case "alimento":
@@ -22,9 +27,13 @@ public class DonacionFactory {
             case "ropa":
                 return new Ropa();
 
+            case "insumos medicos":
             case "insumos":
             case "insumo":
                 return new InsumoMedico();
+
+            case "higiene":
+                return new Higiene();
 
             default:
                 throw new IllegalArgumentException("Categoría inválida: " + categoria);
