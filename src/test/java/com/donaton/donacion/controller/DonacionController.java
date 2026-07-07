@@ -1,14 +1,15 @@
 package com.donaton.donacion.controller;
 
-import com.donaton.donaciones.controller.DonacionController;
+import com.donaton.donaciones.MsDonacionesApplication;
 import com.donaton.donaciones.model.Donacion;
-import com.donaton.donaciones.service.DonacionService; // Corregido: sin la 's' extra
+import com.donaton.donaciones.service.DonacionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean; // Corregido: Import correcto para Spring Boot nuevo
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,13 +21,15 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(DonacionController.class)
+// 🔥 EL CAMBIO DEFINITIVO ESTÁ AQUÍ 🔥
+@SpringBootTest(classes = MsDonacionesApplication.class)
+@AutoConfigureMockMvc
 class DonacionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean // Corregido: Cambiamos @MockBean por @MockitoBean
+    @MockitoBean
     private DonacionService service;
 
     @Autowired
