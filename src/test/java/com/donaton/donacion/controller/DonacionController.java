@@ -1,56 +1,142 @@
-package com.donaton.donacion.controller; // Asegúrate que el paquete sea 'donaciones'
+package com.donaton.donacion.controller;
 
+import com.donaton.donaciones.controller.DonacionController;
 import com.donaton.donaciones.model.Donacion;
-import com.donaton.donaciones.service.DonacionService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.donaton.donaciones.service.DonacionService; // Corregido: sin la 's' extra
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean; // Corregido: Import correcto para Spring Boot nuevo
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
 import java.util.List;
 
-@RestController
-@RequestMapping("/donaciones")
-public class DonacionController {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-    private final DonacionService service;
+@WebMvcTest(DonacionController.class)
+class DonacionControllerTest {
 
-    public DonacionController(DonacionService service) {
-        this.service = service;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean // Corregido: Cambiamos @MockBean por @MockitoBean
+    private DonacionService service;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private Donacion donacionPrueba;
+
+    @BeforeEach
+    void setUp() {
+        donacionPrueba = new Donacion();
+        donacionPrueba.setNombre("Arroz");
+        donacionPrueba.setCategoria("alimento");
+        donacionPrueba.setCantidad(10);
     }
 
-    @GetMapping
-    public List<Donacion> listar() {
-        return service.listar();
+    @Test
+    void testListar() throws Exception {
+        List<Donacion> donaciones = Arrays.asList(donacionPrueba);
+        when(service.listar()).thenReturn(donaciones);
+
+        mockMvc.perform(get("/donaciones"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Arroz"))
+                .andExpect(jsonPath("$[0].cantidad").value(10));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Donacion> obtener(@PathVariable Long id) {
-        Donacion donacion = service.buscarPorId(id);
-        return donacion != null ? ResponseEntity.ok(donacion) : ResponseEntity.notFound().build();
+    @Test
+    void testObtenerExistente() throws Exception {
+        when(service.buscarPorId(1L)).thenReturn(donacionPrueba);
+
+        mockMvc.perform(get("/donaciones/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Arroz"));
     }
 
-    @PostMapping
-    public Donacion crear(@RequestBody Donacion donacion) {
-        return service.guardar(donacion);
+    @Test
+    void testObtenerNoExistente() throws Exception {
+        when(service.buscarPorId(99L)).thenReturn(null);
+
+        mockMvc.perform(get("/donaciones/99"))
+                .andExpect(status().isNotFound());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Donacion> actualizar(@PathVariable Long id, @RequestBody Donacion detalles) {
-        Donacion existente = service.buscarPorId(id);
-        if (existente == null) return ResponseEntity.notFound().build();
+    @Test
+    void testCrear() throws Exception {
+        when(service.guardar(any(Donacion.class))).thenReturn(donacionPrueba);
 
-        // Actualizamos los campos necesarios
-        if (detalles.getCantidad() != 0) existente.setCantidad(detalles.getCantidad());
-        if (detalles.getNombre() != null) existente.setNombre(detalles.getNombre());
-
-        return ResponseEntity.ok(service.guardar(existente));
+        mockMvc.perform(post("/donaciones")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(donacionPrueba)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Arroz"));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        Donacion existente = service.buscarPorId(id);
-        if (existente == null) return ResponseEntity.notFound().build();
+    @Test
+    void testActualizarExistenteConDatos() throws Exception {
+        Donacion detalles = new Donacion();
+        detalles.setNombre("Fideos");
+        detalles.setCantidad(20);
 
-        service.eliminar(id);
-        return ResponseEntity.ok().build();
+        when(service.buscarPorId(1L)).thenReturn(donacionPrueba);
+        when(service.guardar(any(Donacion.class))).thenReturn(donacionPrueba);
+
+        mockMvc.perform(put("/donaciones/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(detalles)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testActualizarExistenteConCamposVacios() throws Exception {
+        Donacion detallesVacios = new Donacion();
+
+        when(service.buscarPorId(1L)).thenReturn(donacionPrueba);
+        when(service.guardar(any(Donacion.class))).thenReturn(donacionPrueba);
+
+        mockMvc.perform(put("/donaciones/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(detallesVacios)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testActualizarNoExistente() throws Exception {
+        when(service.buscarPorId(99L)).thenReturn(null);
+
+        mockMvc.perform(put("/donaciones/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(donacionPrueba)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testEliminarExistente() throws Exception {
+        when(service.buscarPorId(1L)).thenReturn(donacionPrueba);
+        doNothing().when(service).eliminar(1L);
+
+        mockMvc.perform(delete("/donaciones/1"))
+                .andExpect(status().isOk());
+
+        verify(service, times(1)).eliminar(1L);
+    }
+
+    @Test
+    void testEliminarNoExistente() throws Exception {
+        when(service.buscarPorId(99L)).thenReturn(null);
+
+        mockMvc.perform(delete("/donaciones/99"))
+                .andExpect(status().isNotFound());
+
+        verify(service, never()).eliminar(any());
     }
 }
