@@ -3,8 +3,10 @@ package com.donaton.donaciones.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDate; // Importante para la fecha
 
 @Getter
+@Setter
 @Entity
 @Table(name = "productos")
 public class Donacion {
@@ -13,13 +15,11 @@ public class Donacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     private String nombre;
-    @Setter
     private String categoria;
-    @Setter
     private Integer cantidad;
-
-
-
+    private String origen;
+    private LocalDate fecha;
+    @Column(name = "centro_acopio")
+    private String centroAcopio;
 }
